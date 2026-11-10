@@ -1,0 +1,24 @@
+{
+  "name": "second-brain",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "基于 Markdown、Obsidian 和 MCP 的本地长期记忆、经历账本与知识治理工具箱。",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "init:vault": "node scripts/init-vault.mjs",
+    "demo": "node scripts/demo.mjs",
+    "start": "node packages/mcp/index.js",
+    "smoke": "node packages/mcp/smoke.js",
+    "test": "node scripts/verify.mjs",
+    "test:node": "node scripts/verify.mjs --node",
+    "test:python": "node scripts/verify.mjs --python",
+    "check:release": "node scripts/check-release.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "yaml": "2.9.0",
+    "zod": "3.25.76"
+  }
+}

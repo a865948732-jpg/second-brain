@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "second_brain": {
+      "command": "node",
+      "args": ["/absolute/path/to/second-brain/packages/mcp/index.js"],
+      "env": {
+        "SECOND_BRAIN_VAULT": "/absolute/path/to/your/vault"
+      }
+    }
+  }
+}

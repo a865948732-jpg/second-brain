@@ -1,0 +1,9 @@
+{
+  "schema": "second-brain-health-policy-v1",
+  "max_review_age_days": 45,
+  "critical_cards": [
+    { "path": "02_Knowledge/AI幻觉反思——不确定机制时不得编造解释.md", "scope": "shared" },
+    { "path": "02_Knowledge/第二大脑全程伴随机制（实时记录监督自生长）.md", "scope": "shared" },
+    { "path": "02_Knowledge/第二大脑自生长体系搭建决策.md", "scope": "shared" }
+  ]
+}

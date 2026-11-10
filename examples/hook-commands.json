@@ -1,0 +1,11 @@
+{
+  "description": "命令入口表；请按宿主版本手动注册，并将路径改为绝对路径。",
+  "commands": {
+    "SessionStart": ["node", "packages/mcp/hook.js", "--event", "SessionStart"],
+    "SubagentStart": ["node", "packages/mcp/hook.js", "--event", "SubagentStart"],
+    "UserPromptSubmit": ["node", "packages/mcp/hook.js", "--event", "UserPromptSubmit"],
+    "Stop": ["node", "packages/mcp/hook.js", "--event", "Stop"],
+    "UserLog": ["node", "hooks/second-brain-log.cjs", "--event", "userPromptSubmit"],
+    "FinalLog": ["node", "hooks/second-brain-log.cjs", "--event", "stop"]
+  }
+}

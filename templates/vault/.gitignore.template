@@ -1,0 +1,15 @@
+.obsidian/workspace*
+.claude/
+.claudian/
+.tools/
+.workbuddy/
+.env*
+01_Sources/
+99_Attachments/
+*.db
+*.db-*
+*.jsonl
+*.pem
+*.key
+05_Review/会话日志/
+05_Review/SecondBrainRuntime/

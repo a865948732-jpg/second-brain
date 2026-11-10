@@ -1,0 +1,34 @@
+# 用户数据与本地配置
+.local/
+/vault/
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.jsonl
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+settings.local.json
+
+# 工具状态与依赖
+node_modules/
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+coverage/
+.DS_Store
+Thumbs.db
+.obsidian/
+.codex/
+.claude/
+.claudian/
+.workbuddy/

@@ -1,0 +1,22 @@
+name: Bug report
+description: 报告可复现的问题，请使用合成资料。
+body:
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      description: 操作系统、Node/Python/PowerShell 版本和相关客户端版本。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 最小复现
+      description: 命令、合成输入、预期结果和实际结果。请勿上传私人库或凭据。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 验证与错误
+      description: 脱敏错误、退出码、对应模块与已运行的回归。
