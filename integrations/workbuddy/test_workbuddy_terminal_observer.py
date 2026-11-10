@@ -24,7 +24,7 @@ class ObserverTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.projects = self.root / "projects"
         self.project = self.projects / "example-vault"
         self.project.mkdir(parents=True)

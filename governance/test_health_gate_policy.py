@@ -37,7 +37,7 @@ class LayeredHealthTests(unittest.TestCase):
                 f"last_reviewed: {reviewed}\nsource: fixture\n---\n{body}\n")
         (self.vault / "02_Knowledge" / f"{name}.md").write_text(text, encoding="utf-8")
 
-    def run_check(self, dependencies=(), *, vault_path=None):
+    def run_check(self, dependencies=(), *, vault_path=None, culture=None):
         for name in ("知识健康检查.ps1", "health_gate_policy.py"):
             shutil.copy2(ROOT / name, self.skill / name)
         (self.vault / "index.md").write_text("[[critical]] [[ordinary]]\n", encoding="utf-8")
@@ -54,7 +54,10 @@ class LayeredHealthTests(unittest.TestCase):
         )
         def quote(value):
             return "'" + str(value).replace("'", "''") + "'"
-        command = "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); & " + quote(
+        command = "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); "
+        if culture:
+            command += "[Globalization.CultureInfo]::CurrentCulture=[Globalization.CultureInfo]::GetCultureInfo(" + quote(culture) + "); "
+        command += "& " + quote(
             self.skill / "知识健康检查.ps1"
         ) + " -Vault " + quote(self.vault if vault_path is None else vault_path) + " -NoWrite"
         if dependencies:
@@ -79,6 +82,15 @@ class LayeredHealthTests(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("知识卡：2", result.stdout)
                 self.assertIn("硬阻断问题：0", result.stdout)
+
+    def test_health_metrics_and_report_dates_are_culture_invariant(self):
+        for culture in ("fr-FR", "ar-SA"):
+            with self.subTest(culture=culture):
+                result = self.run_check(culture=culture)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("来源覆盖率：100%", result.stdout)
+                self.assertIn("缺少实质语义入链：2 / 2（100.0%）", result.stdout)
+                self.assertIn(f'title: "{date.today().isoformat()} 知识健康报告"', result.stdout)
 
     def test_critical_overdue_is_hard(self):
         self.write_card("critical", "2020-01-01")

@@ -422,18 +422,22 @@ foreach ($file in $candidateFiles) {
     }
 }
 $decided = $decisions.accepted + $decisions.rejected
-$acceptanceRate = if ($decided -gt 0) { '{0:P0}' -f ($decisions.accepted / $decided) } else { '暂无已决样本' }
-$sourceCoverage = if ($knowledgeFiles.Count -gt 0) { '{0:P0}' -f ($sourcedCount / $knowledgeFiles.Count) } else { '不适用' }
-$orphanRate = if ($knowledgeFiles.Count -gt 0) { '{0:P0}' -f ($orphanCount / $knowledgeFiles.Count) } else { '不适用' }
-$semanticOrphanRate = if ($knowledgeFiles.Count -gt 0) { '{0:P1}' -f ($semanticOrphanCount / $knowledgeFiles.Count) } else { '不适用' }
-$outputKnowledgeContextRate = if ($discoveredOutputFiles.Count -gt 0) { '{0:P1}' -f ($outputsWithKnowledgeContext / $discoveredOutputFiles.Count) } else { '不适用' }
+function Format-Percentage([double]$Ratio, [ValidateSet(0, 1)][int]$Decimals = 0) {
+    $pattern = if ($Decimals -eq 0) { '0' } else { '0.0' }
+    return (100 * $Ratio).ToString($pattern, [Globalization.CultureInfo]::InvariantCulture) + '%'
+}
+$acceptanceRate = if ($decided -gt 0) { Format-Percentage ($decisions.accepted / $decided) } else { '暂无已决样本' }
+$sourceCoverage = if ($knowledgeFiles.Count -gt 0) { Format-Percentage ($sourcedCount / $knowledgeFiles.Count) } else { '不适用' }
+$orphanRate = if ($knowledgeFiles.Count -gt 0) { Format-Percentage ($orphanCount / $knowledgeFiles.Count) } else { '不适用' }
+$semanticOrphanRate = if ($knowledgeFiles.Count -gt 0) { Format-Percentage ($semanticOrphanCount / $knowledgeFiles.Count) 1 } else { '不适用' }
+$outputKnowledgeContextRate = if ($discoveredOutputFiles.Count -gt 0) { Format-Percentage ($outputsWithKnowledgeContext / $discoveredOutputFiles.Count) 1 } else { '不适用' }
 
 $policyRecheck = @(& $PythonExecutable @policyArgs 2>&1)
 if ($LASTEXITCODE -ne 0 -or ($policyRecheck -join "`n") -ne ($policyOutput -join "`n")) {
     throw '健康分层策略校验失败，健康检查停止'
 }
 
-$date = Get-Date -Format 'yyyy-MM-dd'
+$date = (Get-Date).ToString('yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
 $issueText = if ($issues.Count) { $issues -join "`n" } else { '- 未发现问题。' }
 $content = @"
 ---

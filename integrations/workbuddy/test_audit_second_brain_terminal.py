@@ -28,7 +28,7 @@ class TerminalAuditTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
+        self.root = Path(self.temp.name).resolve()
         self.projects = self.root / "projects"
         self.project = self.projects / "example-vault"
         self.project.mkdir(parents=True)
@@ -232,6 +232,7 @@ class TerminalAuditTests(unittest.TestCase):
 
         with patch.object(Path, "open", open_file):
             self.reject("evidence_changed_during_audit")
+        self.assertTrue(changed)
 
     def test_database_change_during_read_fails_closed(self):
         original_open = Path.open
@@ -249,6 +250,7 @@ class TerminalAuditTests(unittest.TestCase):
 
         with patch.object(Path, "open", open_file):
             self.reject("evidence_changed_during_audit")
+        self.assertTrue(changed)
 
     def test_cli_hold_uses_nonzero_exit_without_body_echo(self):
         result = subprocess.run(
