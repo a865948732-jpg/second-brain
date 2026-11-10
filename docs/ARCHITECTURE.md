@@ -42,7 +42,7 @@ flowchart LR
 | `hooks/second-brain-transcript-sync.mjs` | 单次扫描 Codex `sessions` 的 JSONL，按文件游标增量同步新消息；第一次为已有文件建立尾部基线，后续调用才追加。独立锁与游标位于本地状态区。 |
 | `hooks/recover_codex_day.cjs` | 对显式指定 transcript 和日期生成补回预览；只有 `--apply` 才交给日志模块写入，保留原始回合身份与北京时间日期。 |
 | `governance/self_growing_distillation.py` | 数据面 Markdown 的增量状态、敏感资格检查、复核清单、内容候选排序与经历蒸馏。默认生成候选报告和状态，`--dry-run` 只预览。 |
-| `governance/health_gate_policy.py` | 校验显式关键卡注册表、阶段与每轮依赖路径，拒绝重复/无效注册和重解析路径，返回策略哈希及本轮关键路径。 |
+| `governance/health_gate_policy.py` | 校验显式关键卡注册表、阶段与每轮依赖路径，拒绝重复/无效注册和重解析路径，返回解析后的 Vault 根、策略哈希及本轮关键路径；健康脚本沿用该根计算相对路径。 |
 | `governance/知识健康检查.ps1` | 调用前述 Python 资格门与健康策略；对同一批文件字节核验哈希，再检查属性、来源、链接、日期和关键卡；输出真实健康指标或报告。 |
 | `integrations/workbuddy/resolve_second_brain_run_context.py` | 从只读 SQLite 运行记录和排程解析任务类型及目标日期，约束身份、时钟、任务年龄、周日流程与迟到范围。 |
 | `integrations/workbuddy/validate_automation_receipt.py` | 校验机器回执的步骤顺序、状态、相邻证据、最终 ACTION 与业务字段；同时提供结构化宿主终态提取函数。 |

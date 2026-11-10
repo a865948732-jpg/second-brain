@@ -436,7 +436,7 @@ token=fixture-feedback-value
     def test_safe_read_returns_clean_content_from_one_byte_read(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             vault = self.make_vault(Path(temporary))
-            source = vault / "05_Review" / "Weekly" / "干净复盘.md"
+            source = (vault / "05_Review" / "Weekly" / "干净复盘.md").resolve()
             source.parent.mkdir(parents=True)
             clean_text = "# 干净复盘\n\n只包含可公开内容。\n"
             source.write_bytes(clean_text.encode("utf-8"))

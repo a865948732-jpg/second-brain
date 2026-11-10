@@ -75,7 +75,8 @@ def load_context(vault, *, phase, dependencies=(), stale_days=45):
         raise ValueError("ambiguous_dependency_case")
     return {
         "schema": SCHEMA, "sha256": hashlib.sha256(raw).hexdigest(),
-        "phase": phase, "critical_paths": critical, "dependency_paths": dependencies,
+        "vault": str(vault), "phase": phase,
+        "critical_paths": critical, "dependency_paths": dependencies,
     }
 
 

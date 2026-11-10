@@ -11,12 +11,7 @@
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Text.UTF8Encoding]::new($false)
-$knowledgeDir = Join-Path $Vault '02_Knowledge'
-$topicDir = Join-Path $Vault '03_Topics'
-$outputDir = Join-Path $Vault '04_Outputs'
-$reviewDir = Join-Path $Vault '05_Review\Weekly'
 $gateScript = Join-Path $PSScriptRoot 'self_growing_distillation.py'
-$reviewRegistry = [IO.Path]::GetFullPath((Join-Path $Vault '05_Review\自生长蒸馏\敏感源人工复核与放行清单.md'))
 $policyArgs = @('-B', (Join-Path $PSScriptRoot 'health_gate_policy.py'), '--vault', $Vault, '--phase', $Phase, '--stale-days', "$StaleDays")
 foreach ($dependency in $DependencyPaths) { $policyArgs += @('--dependency', $dependency) }
 $policyOutput = @(& $PythonExecutable @policyArgs 2>&1)
@@ -26,6 +21,17 @@ catch { throw '健康分层策略校验失败，健康检查停止' }
 if ($healthPolicy.schema -ne 'second-brain-health-policy-v1' -or $healthPolicy.sha256 -notmatch '^[0-9a-f]{64}$') {
     throw '健康分层策略校验失败，健康检查停止'
 }
+if ([string]::IsNullOrWhiteSpace([string]$healthPolicy.vault) -or
+    -not [IO.Path]::IsPathRooted([string]$healthPolicy.vault) -or
+    -not [IO.Directory]::Exists([string]$healthPolicy.vault)) {
+    throw '健康分层策略校验失败，健康检查停止'
+}
+$Vault = [IO.Path]::GetFullPath([string]$healthPolicy.vault)
+$knowledgeDir = Join-Path $Vault '02_Knowledge'
+$topicDir = Join-Path $Vault '03_Topics'
+$outputDir = Join-Path $Vault '04_Outputs'
+$reviewDir = Join-Path $Vault '05_Review/Weekly'
+$reviewRegistry = [IO.Path]::GetFullPath((Join-Path $Vault '05_Review/自生长蒸馏/敏感源人工复核与放行清单.md'))
 
 if (-not (Test-Path -LiteralPath $gateScript)) {
     throw '敏感源资格门禁脚本不存在，健康检查停止'
@@ -84,7 +90,7 @@ $utf8Strict = [Text.UTF8Encoding]::new($false, $true)
 $rawByPath = @{}
 $eligibleMarkdown = [Collections.Generic.List[IO.FileInfo]]::new()
 foreach ($file in $discoveredMarkdown) {
-    $relative = $file.FullName.Substring($Vault.Length).TrimStart('\', '/') -replace '\\', '/'
+    $relative = [IO.Path]::GetRelativePath($Vault, $file.FullName) -replace '\\', '/'
     $isDataFile = $relative -ne 'AGENTS.md'
     $expectedHash = $null
     if ($isDataFile) {
@@ -125,7 +131,7 @@ foreach ($file in $discoveredMarkdown) {
     $eligibleMarkdown.Add($file)
 }
 $allMarkdown = @($eligibleMarkdown)
-$knowledgePrefix = $knowledgeDir.TrimEnd('\') + '\'
+$knowledgePrefix = $knowledgeDir.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
 $knowledgeFiles = @(
     $allMarkdown |
         Where-Object {
@@ -148,8 +154,8 @@ foreach ($requiredPath in @($criticalPaths.Keys) + @($dependencySet.Keys)) {
         throw '关键或依赖卡不可用，健康检查停止'
     }
 }
-$topicPrefix = $topicDir.TrimEnd('\') + '\'
-$outputPrefix = $outputDir.TrimEnd('\') + '\'
+$topicPrefix = $topicDir.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
+$outputPrefix = $outputDir.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
 $topicFiles = @(
     $allMarkdown |
         Where-Object { $_.FullName.StartsWith($topicPrefix, [StringComparison]::OrdinalIgnoreCase) }
@@ -169,7 +175,7 @@ function Get-NormalizedTarget([string]$Value) {
 
 $knowledgeTargets = @{}
 foreach ($file in $knowledgeFiles) {
-    $relative = $file.FullName.Substring($Vault.Length).TrimStart('\', '/') -replace '\\', '/'
+    $relative = [IO.Path]::GetRelativePath($Vault, $file.FullName) -replace '\\', '/'
     $relativeTarget = Get-NormalizedTarget ([IO.Path]::ChangeExtension($relative, $null))
     $knowledgeTargets[$relativeTarget] = $file.FullName
     $baseTarget = $file.BaseName.ToLowerInvariant()
@@ -217,7 +223,7 @@ function Test-VaultFileTarget([string]$Value) {
 
 $knownTargets = @{}
 foreach ($file in $discoveredMarkdown) {
-    $relative = $file.FullName.Substring($Vault.Length).TrimStart('\', '/') -replace '\\', '/'
+    $relative = [IO.Path]::GetRelativePath($Vault, $file.FullName) -replace '\\', '/'
     $knownTargets[(Get-NormalizedTarget ([IO.Path]::ChangeExtension($relative, $null)))] = $true
     $knownTargets[$file.BaseName.ToLowerInvariant()] = $true
 }
@@ -305,7 +311,7 @@ $canonicalConfidences = @('高', '中', '低')
 
 foreach ($file in $knowledgeFiles) {
     $raw = $rawByPath[$file.FullName]
-    $relative = $file.FullName.Substring($Vault.Length).TrimStart('\', '/')
+    $relative = [IO.Path]::GetRelativePath($Vault, $file.FullName)
     $frontmatter = if ($raw -match '(?s)^---\s*(.*?)\s*---') { $Matches[1] } else { '' }
     $isCritical = $criticalPaths.ContainsKey($file.FullName)
     $isDependency = $dependencySet.ContainsKey($file.FullName)

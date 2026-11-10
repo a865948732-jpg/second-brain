@@ -37,7 +37,7 @@ class LayeredHealthTests(unittest.TestCase):
                 f"last_reviewed: {reviewed}\nsource: fixture\n---\n{body}\n")
         (self.vault / "02_Knowledge" / f"{name}.md").write_text(text, encoding="utf-8")
 
-    def run_check(self, dependencies=()):
+    def run_check(self, dependencies=(), *, vault_path=None):
         for name in ("知识健康检查.ps1", "health_gate_policy.py"):
             shutil.copy2(ROOT / name, self.skill / name)
         (self.vault / "index.md").write_text("[[critical]] [[ordinary]]\n", encoding="utf-8")
@@ -56,7 +56,7 @@ class LayeredHealthTests(unittest.TestCase):
             return "'" + str(value).replace("'", "''") + "'"
         command = "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false); & " + quote(
             self.skill / "知识健康检查.ps1"
-        ) + " -Vault " + quote(self.vault) + " -NoWrite"
+        ) + " -Vault " + quote(self.vault if vault_path is None else vault_path) + " -NoWrite"
         if dependencies:
             command += " -DependencyPaths @(" + ",".join(map(quote, dependencies)) + ")"
         return subprocess.run(
@@ -71,6 +71,14 @@ class LayeredHealthTests(unittest.TestCase):
         self.assertIn("硬阻断问题：0", result.stdout)
         self.assertIn("普通逾期提醒：1", result.stdout)
         self.assertIn("问题总数：1", result.stdout)
+
+    def test_vault_aliases_resolve_before_path_fingerprints(self):
+        for alias in (self.vault / "02_Knowledge" / "..", str(self.vault) + os.sep):
+            with self.subTest(vault_path=str(alias)):
+                result = self.run_check(vault_path=alias)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn("知识卡：2", result.stdout)
+                self.assertIn("硬阻断问题：0", result.stdout)
 
     def test_critical_overdue_is_hard(self):
         self.write_card("critical", "2020-01-01")
