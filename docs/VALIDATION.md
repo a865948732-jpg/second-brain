@@ -12,7 +12,7 @@ npm run check:release
 
 | 验证层 | 入口 | 覆盖 |
 | --- | --- | --- |
-| Node 与收件集成 | `npm run test:node` | 知识读写、MCP 子进程、Hook 身份、日志/同步、账本/文件锁/验链/评分、对账、中文路径、链接隔离、初始化与 PowerShell 收件路由。 |
+| Node 与收件集成 | `npm run test:node` | 知识读写、MCP 子进程、Hook 身份、日志/同步、UTC/洛杉矶/上海宿主的北京日期补回、账本/文件锁/验链/评分、对账、中文路径、链接隔离、初始化与 PowerShell 收件路由。 |
 | Python 治理 | `governance/test_*.py` | 敏感资格、复核清单、内容增量、独立经验回执门、健康指标、Node/Python canonicalization、公开模板与治理入口的真实联通。 |
 | Python 原生证据 | `integrations/workbuddy/test_*.py` | 合成原生运行身份、终态回执、时钟边界、观察/ingress 不可变性、回读一致性与健康包装器。 |
 | 文档与发布文件 | `npm run check:release` | 当前 Git 文件清单或未初始化目录的候选清单、可疑私人物料、凭据形态、个人硬编码路径、MIT/锁文件、JSON/YAML 和相对文档链接。 |

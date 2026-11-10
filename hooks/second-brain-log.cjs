@@ -138,7 +138,18 @@ function compact(value) {
   return text.length > MAX_ENTRY_LENGTH ? `${text.slice(0, MAX_ENTRY_LENGTH)}...` : text;
 }
 
-function localDateParts(now) {
+function localDateParts(now, timeZone) {
+  if (timeZone) {
+    const parts = Object.fromEntries(new Intl.DateTimeFormat('en-US', {
+      timeZone, calendar: 'iso8601', numberingSystem: 'latn',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+    }).formatToParts(now).map(({ type, value }) => [type, value]));
+    return {
+      date: `${parts.year}-${parts.month}-${parts.day}`,
+      time: `${parts.hour}:${parts.minute}`,
+    };
+  }
   const pad = (number) => String(number).padStart(2, '0');
   return {
     date: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
@@ -191,7 +202,8 @@ function appendEntry(event, data, text) {
   const recovery = process.argv.includes('--recovery');
   const now = recovery ? new Date(data.original_timestamp) : new Date();
   if (!Number.isFinite(now.getTime())) throw new Error('invalid_recovery_timestamp');
-  const { date, time } = localDateParts(now);
+  // Recovery must match the Beijing day selected by recover_codex_day.cjs.
+  const { date, time } = localDateParts(now, recovery ? 'Asia/Shanghai' : undefined);
   const logFile = path.join(LOG_DIR, `${date}.md`);
 
   ensureLogFile(logFile, date);

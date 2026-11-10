@@ -13,14 +13,15 @@ function fixture(records) {
   fs.writeFileSync(transcript, records.map(record => JSON.stringify(record)).join('\n') + '\n');
   return { root, transcript, logs: path.join(root, 'logs') };
 }
-function run(f, apply = false) {
+function run(f, apply = false, timeZone) {
   return spawnSync(process.execPath, [recovery, '--transcript', f.transcript, '--date', '2026-10-02', ...(apply ? ['--apply'] : [])], {
     encoding: 'utf8', timeout: 5000, windowsHide: true,
-    env: { ...process.env, CODEX_HOME: f.root, CODEX_SECOND_BRAIN_LOG_DIR: f.logs },
+    env: { ...process.env, CODEX_HOME: f.root, CODEX_SECOND_BRAIN_LOG_DIR: f.logs, ...(timeZone ? { TZ: timeZone } : {}) },
   });
 }
 
-test('scoped recovery uses real record roles, original Beijing dates, and remains idempotent', () => {
+for (const timeZone of ['UTC', 'America/Los_Angeles', 'Asia/Shanghai']) {
+test(`scoped recovery preserves Beijing dates, roles and idempotency on ${timeZone} hosts`, () => {
   const at = '2026-10-01T16:01:00Z';
   const f = fixture([
     { type: 'session_meta', payload: { id: 'session-1' } },
@@ -32,20 +33,22 @@ test('scoped recovery uses real record roles, original Beijing dates, and remain
     { timestamp: at, type: 'response_item', payload: { type: 'message', role: 'assistant', phase: 'final_answer', content: [{ type: 'output_text', text: '最终回答' }] } },
     { timestamp: at, type: 'event_msg', payload: { type: 'task_complete', turn_id: 'turn-1' } },
   ]);
-  const dry = run(f);
+  const dry = run(f, false, timeZone);
   assert.equal(dry.status, 0, dry.stderr);
   assert.equal(JSON.parse(dry.stdout).events, 2);
   assert.equal(fs.existsSync(f.logs), false);
-  assert.equal(run(f, true).status, 0);
+  assert.equal(run(f, true, timeZone).status, 0);
   const log = path.join(f.logs, '2026-10-02.md');
   const before = fs.readFileSync(log, 'utf8');
   assert.match(before, /\[00:01\]/);
   assert.match(before, /codex-recovered:/);
   assert.equal(before.includes('过程文本'), false);
   assert.equal(before.includes('前一天'), false);
-  assert.equal(run(f, true).status, 0);
+  assert.equal(run(f, true, timeZone).status, 0);
   assert.equal(fs.readFileSync(log, 'utf8'), before);
+  assert.deepEqual(fs.readdirSync(f.logs), ['2026-10-02.md']);
 });
+}
 
 test('a malformed transcript is rejected before any recovery write', () => {
   const f = fixture([]);

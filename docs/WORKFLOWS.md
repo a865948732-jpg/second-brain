@@ -136,7 +136,7 @@ Process 默认输出计划。核对目标后，使用 `-Action Process -Apply` �
 
 ## Codex 日志与定向补回
 
-已注册的日志 Hook 保存输入与最终回答；生命周期 Hook 保存任务事件；二者是不同记录。
+已注册的日志 Hook 保存输入与最终回答；生命周期 Hook 保存任务事件；二者是不同记录。实时日志使用宿主本地日期和时间；定向补回将原始时间换算为北京时间。
 
 ```sh
 node hooks/second-brain-transcript-sync.mjs --verbose
