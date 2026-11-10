@@ -364,13 +364,16 @@ class ObserverTests(unittest.TestCase):
         self.payload["transcript_path"] = "\\\\?\\" + str(self.transcript)
         self.assertEqual(self.capture()["evidence_status"], "CAPTURED")
 
-    def test_junction_observation_directory_is_rejected(self):
+    def test_linked_observation_directory_is_rejected(self):
         import subprocess
         target = self.root / "target"
         target.mkdir()
-        command = subprocess.run(["cmd.exe", "/c", "mklink", "/J", str(self.observations), str(target)],
-                                 capture_output=True, creationflags=0x08000000)
-        self.assertEqual(command.returncode, 0, command.stderr)
+        if os.name == "nt":
+            command = subprocess.run(["cmd.exe", "/c", "mklink", "/J", str(self.observations), str(target)],
+                                     capture_output=True, creationflags=0x08000000)
+            self.assertEqual(command.returncode, 0, command.stderr)
+        else:
+            self.observations.symlink_to(target, target_is_directory=True)
         with self.assertRaisesRegex(observer.ObservationError, "reparse_path_not_allowed"):
             self.capture()
         self.assertEqual(list(target.iterdir()), [])
